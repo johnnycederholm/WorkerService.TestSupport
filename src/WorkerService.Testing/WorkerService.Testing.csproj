@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<IsPackable>true</IsPackable>
+	<Authors>Johnny Cederholm</Authors>
+	<Description>Support for writing functional tests for Worker Service applications.</Description>
+	<Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Content Include="WorkerService.Testing.targets" Pack="true" PackagePath="build/$(TargetFramework)" />
+  </ItemGroup>
+</Project>
