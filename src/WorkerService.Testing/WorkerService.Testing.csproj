@@ -4,10 +4,12 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<IsPackable>true</IsPackable>
-	<Authors>Johnny Cederholm</Authors>
-	<Description>Support for writing functional tests for Worker Service applications.</Description>
-	<Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
+    <Authors>Johnny Cederholm</Authors>
+    <Description>Support for writing functional tests for Worker Service applications.</Description>
+    <Version>1.0.0</Version>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/johnnycederholm/WorkerService.Testing</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
