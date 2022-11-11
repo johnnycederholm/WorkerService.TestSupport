@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Johnny Cederholm</Authors>
     <Description>Support for writing functional tests for Worker Service applications.</Description>
     <Version>1.0.0</Version>
