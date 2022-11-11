@@ -1,0 +1,23 @@
+name: Create auto-merging PR
+on:
+  push:
+    branches-ignore:
+      - main
+    tags-ignore:
+      - v*
+
+jobs:
+  create:
+    name: Create PR
+    if: ${{contains(github.event.head_commit.message, '#automerge')}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: ${{github.event.head_commit.message}}
+          title: ${{github.event.head_commit.message}}
+          base: main
+          labels: automated-pr
+          branch: ${{github.event.ref}}
+          delete-branch: true
