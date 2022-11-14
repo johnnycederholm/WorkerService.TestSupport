@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace WorkerService.Testing;
+namespace WorkerService.TestSupport;
 
 // This host builder captures calls to the IHostBuilder then replays them in the call to ConfigureHostBuilder
 internal sealed class DeferredHostBuilder : IHostBuilder
@@ -94,7 +94,7 @@ internal sealed class DeferredHostBuilder : IHostBuilder
 
     public void ConfigureHostBuilder(object hostBuilder)
     {
-        _configure(((IHostBuilder)hostBuilder));
+        _configure((IHostBuilder)hostBuilder);
     }
 
     public void EntryPointCompleted(Exception? exception)
