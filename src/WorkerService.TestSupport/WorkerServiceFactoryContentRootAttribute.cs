@@ -4,7 +4,7 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace WorkerService.Testing;
+namespace WorkerService.TestSupport;
 
 /// <summary>
 /// Metadata that <see cref="WorkerServiceFactory{TEntryPoint}"/> uses to find out the content

@@ -36,7 +36,7 @@
 		<ItemGroup>
 			<AssemblyAttribute
 			  Condition=" '%(WorkerServiceFactoryContentRootAttribute.Identity)' != '' "
-			  Include="WorkerService.Testing.WorkerServiceFactoryContentRootAttribute">
+			  Include="WorkerService.TestSupport.WorkerServiceFactoryContentRootAttribute">
 				<_Parameter1>%(WorkerServiceFactoryContentRootAttribute.AssemblyName)</_Parameter1>
 				<_Parameter2>%(WorkerServiceFactoryContentRootAttribute.ContentRootPath)</_Parameter2>
 				<_Parameter3>%(WorkerServiceFactoryContentRootAttribute.ContentRootTest)</_Parameter3>
@@ -54,32 +54,4 @@
 
 		<Copy SourceFiles="%(DepsFilePaths.FullPath)" DestinationFolder="$(OutDir)" Condition="Exists('%(DepsFilePaths.FullPath)')" />
 	</Target>
-
-  <!--<Target Name="_AddContentRootForProjectReferences" BeforeTargets="PrepareResources" DependsOnTargets="_ResolveMvcTestProjectReferences">
-    <ItemGroup Condition="'@(_ContentRootProjectReferences->Count())' != '0'">
-      <_ManifestProjects Include="%(_ContentRootProjectReferences.FusionName)">
-        <ContentRoot>$([System.IO.Path]::GetDirectoryName('%(_ContentRootProjectReferences.MSBuildSourceProjectFile)'))</ContentRoot>
-      </_ManifestProjects>
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_GeneratePublishTestManifest" Condition="$(IsPublishable) == 'true'" BeforeTargets="Publish" DependsOnTargets="_ResolveMvcTestProjectReferences">
-    <ItemGroup>
-      <_PublishManifestProjects Include="%(_ContentRootProjectReferences.FusionName)">
-        <ContentRoot>~</ContentRoot>
-      </_PublishManifestProjects>
-      <_DepsFileToPublish Include="$([System.IO.Path]::ChangeExtension('%(_ContentRootProjectReferences.Identity)', 'deps.json'))" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_MvcCopyDependencyFiles" AfterTargets="Build;_ResolveMvcTestProjectReferences" Condition="'$(TargetFramework)'!=''">
-    <ItemGroup>
-      <DepsFilePaths
-        Condition="'%(_ContentRootProjectReferences.Identity)' != ''"
-        Include="$([System.IO.Path]::ChangeExtension('%(_ContentRootProjectReferences.ResolvedFrom)', '.deps.json'))" />
-    </ItemGroup>
-
-    <Copy SourceFiles="%(DepsFilePaths.FullPath)" DestinationFolder="$(OutDir)" Condition="Exists('%(DepsFilePaths.FullPath)')" />
-  </Target>-->
-
 </Project>

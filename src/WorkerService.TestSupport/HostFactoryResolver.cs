@@ -4,7 +4,7 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace WorkerService.Testing;
+namespace WorkerService.TestSupport;
 
 internal class HostFactoryResolver
 {

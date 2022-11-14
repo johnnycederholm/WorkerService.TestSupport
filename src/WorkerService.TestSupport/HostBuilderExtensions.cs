@@ -3,7 +3,7 @@
 
 using Microsoft.Extensions.Hosting;
 
-namespace WorkerService.Testing;
+namespace WorkerService.TestSupport;
 
 internal static class HostBuilderExtensions
 {

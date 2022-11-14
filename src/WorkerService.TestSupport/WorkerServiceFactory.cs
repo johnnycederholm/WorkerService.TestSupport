@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Hosting;
 
-namespace WorkerService.Testing;
+namespace WorkerService.TestSupport;
 
 /// <summary>
 /// Factory for bootstrapping an application in memory for functional end to end tests.
@@ -86,7 +86,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
         EnsureDepsFile();
 
         var hostBuilder = CreateHostBuilder();
-        
+
         if (hostBuilder is not null)
         {
             await ConfigureHostBuilder(hostBuilder);
@@ -164,7 +164,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
             builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name!);
         }
     }
-   
+
     private string? GetContentRootFromAssembly()
     {
         var metadataAttributes = GetContentRootMetadataAttributes(

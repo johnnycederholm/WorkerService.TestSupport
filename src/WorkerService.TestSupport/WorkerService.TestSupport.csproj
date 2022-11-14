@@ -10,7 +10,7 @@
     <Description>Support for writing functional tests for Worker Service applications.</Description>
     <Version>1.0.0</Version>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/johnnycederholm/WorkerService.Testing</RepositoryUrl>
+    <RepositoryUrl>https://github.com/johnnycederholm/WorkerService.TestSupport</RepositoryUrl>
     <PackageTags>worker service testing;testing</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -22,6 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <Content Include="WorkerService.Testing.targets" Pack="true" PackagePath="build/$(TargetFramework)" />
+	  <Content Include="WorkerService.TestSupport.targets" Pack="true" PackagePath="build/$(TargetFramework)" />
   </ItemGroup>
 </Project>
