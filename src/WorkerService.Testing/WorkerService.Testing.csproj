@@ -11,6 +11,9 @@
     <Version>1.0.0</Version>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/johnnycederholm/WorkerService.Testing</RepositoryUrl>
+    <PackageTags>worker service testing;testing</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
