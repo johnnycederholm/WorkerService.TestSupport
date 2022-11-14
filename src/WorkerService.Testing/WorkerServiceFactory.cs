@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Reflection;
-using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Hosting;
-using WorkerService.Testing;
 
 namespace WorkerService.Testing;
 
@@ -22,29 +21,6 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
     private Action<IHostBuilder> _configuration;
     private readonly List<WorkerServiceFactory<TEntryPoint>> _derivedFactories = new();
 
-    /// <summary>
-    /// <para>
-    /// Creates an instance of <see cref="WorkerServiceFactory{TEntryPoint}"/>. This factory can be used to
-    /// create a <see cref="TestServer"/> instance using the MVC application defined by <typeparamref name="TEntryPoint"/>
-    /// and one or more <see cref="HttpClient"/> instances used to send <see cref="HttpRequestMessage"/> to the <see cref="TestServer"/>.
-    /// The <see cref="WebApplicationFactory{TEntryPoint}"/> will find the entry point class of <typeparamref name="TEntryPoint"/>
-    /// assembly and initialize the application by calling <c>IWebHostBuilder CreateWebHostBuilder(string [] args)</c>
-    /// on <typeparamref name="TEntryPoint"/>.
-    /// </para>
-    /// <para>
-    /// This constructor will infer the application content root path by searching for a
-    /// <see cref="WorkerServiceFactoryContentRootAttribute"/> on the assembly containing the functional tests with
-    /// a key equal to the <typeparamref name="TEntryPoint"/> assembly <see cref="Assembly.FullName"/>.
-    /// In case an attribute with the right key can't be found, <see cref="WebApplicationFactory{TEntryPoint}"/>
-    /// will fall back to searching for a solution file (*.sln) and then appending <typeparamref name="TEntryPoint"/> assembly name
-    /// to the solution directory. The application root directory will be used to discover views and content files.
-    /// </para>
-    /// <para>
-    /// The application assemblies will be loaded from the dependency context of the assembly containing
-    /// <typeparamref name="TEntryPoint" />. This means that project dependencies of the assembly containing
-    /// <typeparamref name="TEntryPoint" /> will be loaded as application assemblies.
-    /// </para>
-    /// </summary>
     public WorkerServiceFactory()
     {
         _configuration = ConfigureHost;
@@ -59,7 +35,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
     }
 
     /// <summary>
-    /// Gets the <see cref="IServiceProvider"/> created by the server associated with this <see cref="WebApplicationFactory{TEntryPoint}"/>.
+    /// Gets the <see cref="IServiceProvider"/> associated with this <see cref="WorkerServiceFactory{TEntryPoint}"/>.
     /// </summary>
     public virtual IServiceProvider Services
     {
@@ -71,20 +47,20 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
     }
 
     /// <summary>
-    /// Gets the <see cref="IReadOnlyList{WebApplicationFactory}"/> of factories created from this factory
-    /// by further customizing the <see cref="IWebHostBuilder"/> when calling
-    /// <see cref="WebApplicationFactory{TEntryPoint}.WithWebHostBuilder(Action{IWebHostBuilder})"/>.
+    /// Gets the <see cref="IReadOnlyList{WorkerServiceFactory}"/> of factories created from this factory
+    /// by further customizing the <see cref="IHostBuilder"/> when calling
+    /// <see cref="WorkerServiceFactory{TEntryPoint}.WithHostBuilder(Action{IHostBuilder})"/>.
     /// </summary>
     public IReadOnlyList<WorkerServiceFactory<TEntryPoint>> Factories => _derivedFactories.AsReadOnly();
 
     /// <summary>
-    /// Creates a new <see cref="WebApplicationFactory{TEntryPoint}"/> with a <see cref="IWebHostBuilder"/>
+    /// Creates a new <see cref="WorkerServiceFactory{TEntryPoint}"/> with a <see cref="IHostBuilder"/>
     /// that is further customized by <paramref name="configuration"/>.
     /// </summary>
     /// <param name="configuration">
-    /// An <see cref="Action{IWebHostBuilder}"/> to configure the <see cref="IWebHostBuilder"/>.
+    /// An <see cref="Action{IHostBuilder}"/> to configure the <see cref="IHostBuilder"/>.
     /// </param>
-    /// <returns>A new <see cref="WebApplicationFactory{TEntryPoint}"/>.</returns>
+    /// <returns>A new <see cref="WorkerServiceFactory{TEntryPoint}"/>.</returns>
     public WorkerServiceFactory<TEntryPoint> WithHostBuilder(Action<IHostBuilder> configuration) =>
         WithHostBuilderCore(configuration);
 
@@ -105,11 +81,55 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
         return factory;
     }
 
-    public async Task Start()
+    public async Task StartAsync()
     {
         EnsureDepsFile();
 
         var hostBuilder = CreateHostBuilder();
+        
+        if (hostBuilder is not null)
+        {
+            await ConfigureHostBuilder(hostBuilder);
+            return;
+        }
+        else
+        {
+            var deferredHostBuilder = new DeferredHostBuilder();
+            deferredHostBuilder.UseEnvironment(Environments.Development);
+            // There's no helper for UseApplicationName, but we need to 
+            // set the application name to the target entry point 
+            // assembly name.
+            deferredHostBuilder.ConfigureHostConfiguration(config =>
+            {
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                        { HostDefaults.ApplicationKey, typeof(TEntryPoint).Assembly.GetName()?.Name ?? string.Empty }
+                });
+            });
+            // This helper call does the hard work to determine if we can fallback to diagnostic source events to get the host instance
+            var factory = HostFactoryResolver.ResolveHostFactory(
+                typeof(TEntryPoint).Assembly,
+                stopApplication: false,
+                configureHostBuilder: deferredHostBuilder.ConfigureHostBuilder,
+                entrypointCompleted: deferredHostBuilder.EntryPointCompleted);
+
+            if (factory is not null)
+            {
+                // If we have a valid factory it means the specified entry point's assembly can potentially resolve the IHost
+                // so we set the factory on the DeferredHostBuilder so we can invoke it on the call to IHostBuilder.Build.
+                deferredHostBuilder.SetHostFactory(factory);
+
+                ConfigureHostBuilder(deferredHostBuilder);
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"No method 'public static {nameof(IHostBuilder)} CreateHostBuilder(string[] args)' found on '{typeof(TEntryPoint).Assembly.EntryPoint!.DeclaringType!.FullName}'. Alternatively, {typeof(WorkerServiceFactory<TEntryPoint>).Name} can be extended and '{nameof(CreateHostBuilder)}' can be overridden to provide your own instance.");
+        }
+    }
+
+    private async Task ConfigureHostBuilder(IHostBuilder hostBuilder)
+    {
         SetContentRoot(hostBuilder);
         _configuration(hostBuilder);
         _host = CreateHost(hostBuilder);
@@ -117,7 +137,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
         await _host.StartAsync();
     }
 
-    public Task Stop()
+    public Task StopAsync()
     {
         Dispose();
         return Task.CompletedTask;
@@ -144,22 +164,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
             builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name!);
         }
     }
-
-    private static string? GetContentRootFromFile(string file)
-    {
-        var data = JsonSerializer.Deserialize<IDictionary<string, string>>(File.ReadAllBytes(file))!;
-        var key = typeof(TEntryPoint).Assembly.GetName().FullName;
-
-        // If the `ContentRoot` is not provided in the app manifest, then return null
-        // and fallback to setting the content root relative to the entrypoint's assembly.
-        if (!data.TryGetValue(key, out var contentRoot))
-        {
-            return null;
-        }
-
-        return (contentRoot == "~") ? AppContext.BaseDirectory : contentRoot;
-    }
-
+   
     private string? GetContentRootFromAssembly()
     {
         var metadataAttributes = GetContentRootMetadataAttributes(
@@ -271,7 +276,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
     }
 
     /// <summary>
-    /// Creates a <see cref="IHostBuilder"/> used to set up <see cref="TestServer"/>.
+    /// Creates a <see cref="IHostBuilder"/>.
     /// </summary>
     /// <remarks>
     /// The default implementation of this method looks for a <c>public static IHostBuilder CreateHostBuilder(string[] args)</c>
@@ -289,8 +294,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
 
     /// <summary>
     /// Creates the <see cref="IHost"/> with the bootstrapped application in <paramref name="builder"/>.
-    /// This is only called for applications using <see cref="IHostBuilder"/>. Applications based on
-    /// <see cref="IWebHostBuilder"/> will use <see cref="CreateServer"/> instead.
+    /// This is only called for applications using <see cref="IHostBuilder"/>. 
     /// </summary>
     /// <param name="builder">The <see cref="IHostBuilder"/> used to create the host.</param>
     /// <returns>The <see cref="IHost"/> with the bootstrapped application.</returns>
@@ -304,7 +308,7 @@ public class WorkerServiceFactory<TEntryPoint> : IDisposable, IAsyncDisposable w
     /// <summary>
     /// Gives a fixture an opportunity to configure the application before it gets built.
     /// </summary>
-    /// <param name="builder">The <see cref="IWebHostBuilder"/> for the application.</param>
+    /// <param name="builder">The <see cref="IHostBuilder"/> for the application.</param>
     protected virtual void ConfigureHost(IHostBuilder builder)
     {
     }

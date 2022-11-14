@@ -7,13 +7,13 @@ using System.Reflection;
 namespace WorkerService.Testing;
 
 /// <summary>
-/// Metadata that <see cref="WebApplicationFactory{TEntryPoint}"/> uses to find out the content
+/// Metadata that <see cref="WorkerServiceFactory{TEntryPoint}"/> uses to find out the content
 /// root for the web application represented by <c>TEntryPoint</c>.
-/// <see cref="WebApplicationFactory{TEntryPoint}"/> will iterate over all the instances of
+/// <see cref="WorkerServiceFactory{TEntryPoint}"/> will iterate over all the instances of
 /// <see cref="WorkerServiceFactoryContentRootAttribute"/>, filter the instances whose
 /// <see cref="Key"/> is equal to <c>TEntryPoint</c> <see cref="Assembly.FullName"/>,
 /// order them by <see cref="Priority"/> in ascending order.
-/// <see cref="WebApplicationFactory{TEntryPoint}"/> will check for the existence of the marker
+/// <see cref="WorkerServiceFactory{TEntryPoint}"/> will check for the existence of the marker
 /// in <c>Path.Combine(<see cref="ContentRootPath"/>, Path.GetFileName(<see cref="ContentRootTest"/>))"</c>
 /// and if the file exists it will set the content root to <see cref="ContentRootPath"/>.
 /// </summary>
@@ -25,7 +25,7 @@ public sealed class WorkerServiceFactoryContentRootAttribute : Attribute
     /// </summary>
     /// <param name="key">
     /// The key of this <see cref="WorkerServiceFactoryContentRootAttribute"/>. This
-    /// key is used by <see cref="WebApplicationFactory{TEntryPoint}"/> to determine what of the
+    /// key is used by <see cref="WorkerServiceFactory{TEntryPoint}"/> to determine what of the
     /// <see cref="WorkerServiceFactoryContentRootAttribute"/> instances on the test assembly should be used
     /// to match a given TEntryPoint class.
     /// </param>
